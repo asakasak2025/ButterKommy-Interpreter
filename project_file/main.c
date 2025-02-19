@@ -408,7 +408,7 @@ EventPointStack* getEventPointStack()
 	{
 		evnetPointStack = &(*evnetPointStack)->head;
 	}
-	else debug("없는데 달라고 해? 우쒸");
+	else debug("이벤트가 없어");
 	EventPointStack* get = *evnetPointStack;
 	*evnetPointStack = NULL;
 	return get;
@@ -421,7 +421,7 @@ EventPointStack* seekEventPointStack()
 	{
 		evnetPointStack = &(*evnetPointStack)->head;
 	}
-	else debug("없는데 달라고 해? 우쒸");
+	else debug("이벤트가 없어");
 	EventPointStack* get = *evnetPointStack;
 	return get;
 }
@@ -438,18 +438,19 @@ void endEventPointStack() // 필요한일이 있겠나 싶다
 	}
 }
 
-void endFunction(int *oder) // 누가 지금 깨진 내 대가리를 봉합해다오
+void endFunction(int *oder, int* flag) // 누가 지금 깨진 내 대가리를 봉합해다오
 {
 	EventPointStack* val = seekEventPointStack();
 	//printf("s");
 	switch (val->Event)
 	{
 	case (3 << 4) + 4:
+		if (val->d == 1) *flag = 0;
 		free(getEventPointStack());
 		break;
 	case (3 << 4) + 5:
 	{
-		if (val->d--)
+		if (--val->d)
 		{
 			*oder = val->point;
 		}
@@ -492,6 +493,29 @@ void endFunction(int *oder) // 누가 지금 깨진 내 대가리를 봉합해다오
 	}
 }
 
+void ifFunction(int buffer[], size_t* oder, int* flag)
+{
+	if (buffer[0] == 3) switch (buffer[1])
+	{
+	case 4:
+		setEventPointStack((3 << 4) + 4, *oder, 0);
+		break;
+	case 5:
+		setEventPointStack((3 << 4) + 4, *oder, 0);
+		break;
+	case 6:
+		setEventPointStack((3 << 4) + 4, *oder, 0);
+		break;
+	case 7:
+		setEventPointStack((3 << 4) + 4, *oder, 0);
+		break;
+	case 8:
+		if (seekEventPointStack()->d == 1) *flag = 0;
+		free(getEventPointStack());
+		break;
+	}
+}
+
 /*
 
 
@@ -515,8 +539,8 @@ void endFunction(int *oder) // 누가 지금 깨진 내 대가리를 봉합해다오
 == 0110
 != 0111
 < 1000
-> 1001
-<= 1010
+<= 1001
+> 1010
 >= 1011
 || 1100
 && 1101
@@ -646,7 +670,7 @@ int getCommandCount(int _get, int get_)
 
 #define intwoDefineFunction(i, d, a, b, c) case i: setValn(getValn(b) d getValn(c), a); break
 
-void engeneFunction(int buffer[], size_t* oder, size_t* flag)
+void engeneFunction(int buffer[], size_t* oder, int* flag)
 {
 	switch (buffer[0])
 	{
@@ -696,28 +720,33 @@ void engeneFunction(int buffer[], size_t* oder, size_t* flag)
 			break;
 		case 4:
 			if ( !(0 < getValn(buffer[2]) ) ) *flag = 2;
-			setEventPointStack((3 << 4) + 4, *oder, 0);
+			setEventPointStack((3 << 4) + 4, *oder, 1);
 			break;
 		case 5:
 			setEventPointStack((3 << 4) + 5, *oder, buffer[2]);
 			break;
 		case 6:
-			setEventPointStack((3 << 4) + 6, (*oder) - 8, buffer[3]);
+			setEventPointStack((3 << 4) + 6, (*oder), buffer[3]);
 			seekEventPointStack()->d_[0] = buffer[2];
 			setValn(0, buffer[2]);
 			break;
 		case 7:
-			setEventPointStack((3 << 4) + 7, *oder, buffer[2]);
+			if(getValn(buffer[2])) setEventPointStack((3 << 4) + 7, *oder, buffer[2]);
+			else
+			{
+				setEventPointStack((3 << 4) + 4, *oder, 1);
+				*flag = 2;
+			}
 			break;
 		case 8: // 지금 본인 대가리가 깨진듯
-			endFunction(oder);
+			endFunction(oder, flag);
 			break;
 		case 9:
 			setEventPointStack((3 << 4) + 9, *oder, 0);
 			*oder = getPointValNode(buffer[2]);
 			break;
 		case 10:
-			endFunction(oder);
+			endFunction(oder, flag);
 			break;
 		}
 		break;
@@ -823,10 +852,9 @@ void engene(int flag)
 
 		if( bufferCount == 0 )
 		{
-			if (bufferCount == -1);
-			else if (flag == 2) if (buffer[0] == 3 && buffer[1] == 8) flag = 0;
-			else if (flag == 1) engeneFunctionFirst(buffer, &oder, &first_oder);
+			if (flag == 1) engeneFunctionFirst(buffer, &oder, &first_oder);
 			if (flag == 0 ) engeneFunction(buffer, &oder, &flag);
+			else if (flag == 2) ifFunction(buffer, &oder, &flag);
 		}
 		
 
@@ -948,7 +976,7 @@ void main_(char* format)
 
 	// 실행 영역
 	{
-		//engene(1);
+		engene(1);
 		engene(0);
 	}
 
