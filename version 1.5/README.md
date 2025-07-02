@@ -3,12 +3,12 @@
 
 ## 개요
 
-코미버터-인터프리터는 간단하게 만들어진 인터프리터임임
+코미버터-인터프리터는 간단하게 만들어진 인터프리터임
 
 - "코미"는 0, "버터"는 1을 지칭하는 2진수 코드를 읽음
 - 4비트로 주요 명령어를 구분하고 4비트로 세부 명령어를 구분함
 - 변수, 연산, 제어 구조, 스코프, 입출력 등 기본적인 프로그래밍 기능을 지원함
-- 다만 입출력에 대해서는 빈약한편
+- 다만 입출력에 대해서는 빈약함
 
 ## 인터프리터 구조
 
@@ -32,10 +32,12 @@
 - **array 연산부 (0110):** array의 연산부
 - **array 함수부 (0111):** arrat의 함수부
 
+주의: array 부분은 16비트 인수가 많음, 16비트는 8비트 기준 2개이니 인수 갯수에서 2개로 산정함
+
 | 바이트 코드 | 인수 갯수 | 설명 |
 | :-- | :-- | :-- |
 | 0001 0001 | 3 | 변수 선언 가능함, 이름과 2바이트 값을 받음 |
-| 0001 0010 | 2 | 문자열 선언 가능함, 이름과 아스키로 받음, NULL받을시 종료 |
+| 0001 0010 | 2++ | 문자열 선언 가능함, 이름과 아스키로 받음, NULL받을시 종료 |
 | 0010 0001 | 3 | + |
 | 0010 0010 | 3 | - |
 | 0010 0011 | 3 | * |
@@ -66,6 +68,54 @@
 | 0100 0011 | 1 | println string |
 | 0100 0100 | 1 | get int |
 | 0100 0101 | 1 | get char |
+
+**Array code**
+| 바이트 코드 | 인수 갯수 | 설명 |
+| :-- | :-- | :-- |
+| 0101 0001 | 6 | array[index] = value |
+| 0101 0010 | 6 | array[*index] = value |
+| 0101 0011 | 6++ | array offset count value[0] ---- value[count], 개수 만큼 받음 |
+
+| 연산 코드 & 기호 코드 | 인수 갯수 | 기호 | 가수 | 기호 | 가수 |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| 0110 0001 | 12 | + | (*array)[*index] | + | (*array)[*index] |
+| 0110 0001 | 12 | - | (*array)[*index] | - | (*array)[*index] |
+| 0110 0001 | 12 | * | (*array)[*index] | * | (*array)[*index] |
+| 0110 0001 | 12 | / | (*array)[*index] | / | (*array)[*index] |
+| 0110 0001 | 12 | % | (*array)[*index] | % | (*array)[*index] |
+| 0110 0001 | 12 | == | (*array)[*index] | == | (*array)[*index] |
+| 0110 0001 | 12 | != | (*array)[*index] | != | (*array)[*index] |
+| 0110 0001 | 12 | < | (*array)[*index] | < | (*array)[*index] |
+| 0110 0001 | 12 | <= | (*array)[*index] | <= | (*array)[*index] |
+| 0110 0001 | 12 | > | (*array)[*index] | > | (*array)[*index] |
+| 0110 0001 | 12 | >= | (*array)[*index] | >= | (*array)[*index] |
+| 0110 0001 | 12 | \|\| | (*array)[*index] | \|\| | (*array)[*index] |
+| 0110 0001 | 12 | \&\& | (*array)[*index] | \&\& | (*array)[*index] |
+| 0110 0001 | 12 | << | (*array)[*index] | << | (*array)[*index] |
+| 0110 0001 | 12 | >> | (*array)[*index] | >> | (*array)[*index] |
+
+| 바이트 코드 | 인수 갯수 | 설명 | 설명 |
+| :-- | :-- | :-- | :- |
+| 0111 0001 | 10 | memcpy | array offset array offset |
+| 0111 0010 | 3 | stack cpy | flag array offset, +: 상위 스코프로 이동 -: 하위 스코프로 가져옴, flag 8비트 |
+| 0111 0011 | 7 | arr <-> str | flag array offset str, flag 8비트 |
+| 0111 0100 | 2 | clear | array |
+
+0101 0011 flag:
+
+xxxx xx01: arr -> string
+xxxx xx10: arr <- string
+xxxx xx11: 빈 공간으로 이동
+
+xxxx x1xx: String을 상수로 받음
+xxxx 1xxx: Array와 index Pointer를 상수로 받음
+
+xx11 xxxx: 4바이트씩 이동
+xx10 xxxx: 3바이트씩 이동
+xx01 xxxx: 2바이트씩 이동
+xx00 xxxx: 1바이트씩 이동
+
+
 
 ## 메모리 관리
 
