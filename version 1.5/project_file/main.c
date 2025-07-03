@@ -6,7 +6,7 @@ const _Bool debugEvnet = 0;
 
 #define BK_FILE_UTF8 1
 #define BK_ADD_TEXT_MODE 1
-// #define CONSOLE_UTF8 1 // visual studio 의 window 환경 전용
+#define CONSOLE_UTF8 1 // visual studio 의 window 환경 전용
 
 #ifndef BK_FILE_UTF8
 
@@ -650,6 +650,7 @@ ErrorCode engene(int flag)
 
 		if( bufferCount == 0 )
 		{
+			//printf("event: %d %d \n", buffer[0], buffer[1]);
 			if (flag == 1) engeneFunctionFirst(buffer, &oder, &first_oder);
 			if (flag == 0 ) engeneFunction(buffer, &oder, &flag);
 			else if (flag == 2) ifFunction(buffer, &oder, &flag);
@@ -786,6 +787,8 @@ Parser* main_plus(char* format)
 int add_parser(char* cat, size_t size)
 {
 
+	DebugPrintln("add_parset 시작");
+
 	Parser* parser = main_plus("code_list.txt");
 	if (!parser) {
 		DebugPrintln("code_list.txt 파일에 대해서 오류가 발생했습니다.");
@@ -825,11 +828,16 @@ int add_parser(char* cat, size_t size)
 
 		}
 
+		DebugPrintln("add_parset 해제");
+
 		for (size_t i = 0; i < count; i++) {
 			free(key[i][0]);
 			free(key[i][1]);
+			free(key[i]);
 		}
 		free(key);
+
+		DebugPrintln("add_parset 끝");
 
 	}
 	return 0;
@@ -896,6 +904,9 @@ int default_parser(char* cat, size_t size)
 
 void main_(char* format)
 {
+
+
+
 	FILE* fp = fopen(format, "r");
 	if (!fp)
 	{
@@ -964,6 +975,8 @@ void main_(char* format)
 
 	}
 
+
+
 	if (debugEvnet) // 파싱 데이터 확인 영역
 	{
 
@@ -1016,6 +1029,8 @@ void main_(char* format)
 		endPointValNode();
 		endEventPointStack();*/
 	}
+
+
 
 }
 

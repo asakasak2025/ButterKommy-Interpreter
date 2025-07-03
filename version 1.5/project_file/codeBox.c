@@ -84,7 +84,7 @@ ErrorCode setCodeBox(char d)
 	error = getValNode(headTable->d, headTable->top / SIZE26, &table); // 2차 테이블 저장
 	if (error == ERROR_NULL_POINTER || error == ERROR_INVALID_VAL)
 	{
-		error = newMalloc(&table, sizeof(VoidNode));
+		error = newVoidNode(&table);
 		if (error != ERROR_NONE) return error;
 
 		error = newValNode(&(*headTablePointer)->d, headTable->top / SIZE26, table);
@@ -92,7 +92,6 @@ ErrorCode setCodeBox(char d)
 
 	}
 	else if (error != ERROR_NONE) return error;
-
 
 	CodeBox* Node; // 3차 테이블 선언
 
@@ -103,6 +102,7 @@ ErrorCode setCodeBox(char d)
 		if (error != ERROR_NONE) return error;
 
 		error = newValNode(&table, headTable->top % SIZE26 / SIZE10, Node); // 3차 테이블 저장
+
 		if (error != ERROR_NONE) return error;
 
 	}
@@ -110,6 +110,8 @@ ErrorCode setCodeBox(char d)
 
 	Node->d[headTable->top % SIZE10] = d; // 3차 테이블의 값에 저장
 	headTable->top++; // 다음 index로 넘김
+
+
 
 	return ERROR_NONE;
 }
@@ -145,39 +147,23 @@ ErrorCode getCodeBox(size_t index, char* d)
 ErrorCode CodeBoxTableEnd()
 {
 	ErrorCode error = ERROR_NONE;
-	ErrorCode firstError = ERROR_NONE;
 	CodeBoxTable** Table = CodeBoxHeadPointer();
 	if (!*Table) return ERROR_NULL_POINTER;
 
 	VoidNode** table = &(*Table)->d;
-
-	for (size_t index = 0; index < (*Table)->top / SIZE26; index++) // 2차 테이블 제거 시퀀스
+	for (size_t index = 0; index < (*Table)->top / SIZE26 + 1; index++) // 2차 테이블 제거 시퀀스
 	{
-		//printf("%d %d %U", index, *Table, (*Table)->top);
-		VoidNode* node;
-		error = getValNode(*table, index, &node); // 2차 테이블 가져오기
-		if (error != ERROR_NONE)
-		{
-			handleError(error); //에러시 메시지
-			if (firstError == ERROR_NONE) firstError = error; // 에러시 저장
-		} else error = freeValNode(&node); // 2차 테이블 제거
+		//printf("%LL %p %LL", index, *Table, (*Table)->top);
+		VoidNode** node;
+		error = getValNodePointer(*table, index, &node); // 2차 테이블 가져오기
+		if (error != ERROR_NONE) continue;
 
-		if (error != ERROR_NONE)
-		{
-			handleError(error); //에러시 메시지
-			if (firstError == ERROR_NONE) firstError = error; // 에러시 저장
-		}
+		error = freeValNode(node); // 2차 테이블 제거
 
 	}
 	error = freeValNode(table); // 1차 테이블 제거
 	free(*Table); // 테이블 제거
 	*Table = NULL;
 
-	if (error != ERROR_NONE)
-	{
-		handleError(error); //에러시 메시지
-		if (firstError == ERROR_NONE) firstError = error; // 에러시 저장
-	}
-
-	return firstError;
+	return error;
 }

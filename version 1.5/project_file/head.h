@@ -6,6 +6,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MALLOC_DEBUG
+
+#ifdef MALLOC_DEBUG
+
+static void* c_pointer_buffer;
+#define c_alloc_print__(n, p, fa, ...) printf("%s %d: %s %p" fa "\n", __FILE__, __LINE__, #n, p, __VA_ARGS__)
+#define c_alloc_print(n, p) c_alloc_print__(n, p, "")
+#define c_alloc(f, ...) ( c_pointer_buffer = f(__VA_ARGS__),c_alloc_print(f, c_pointer_buffer), c_pointer_buffer ) 
+#define malloc(s) c_alloc(malloc, s)
+#define calloc(n, s) c_alloc(calloc, n, s)
+#define realloc(p, s) (c_pointer_buffer = realloc(p, s), c_alloc_print__(realloc, p, " %p", c_pointer_buffer), c_pointer_buffer)
+#define free(p) c_alloc_print(free, p); free(p);
+
+#endif MALLOC_DEBUG
+
 typedef enum
 {
 	ERROR_NONE,

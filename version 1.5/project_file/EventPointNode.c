@@ -102,12 +102,23 @@ ErrorCode newEventPointNode(int Event, size_t Point)
 */
 ErrorCode popEventPointNode()
 {
+	ErrorCode error = ERROR_NONE;
 	if (head)
 	{
 		EventPointNode* Node = head;
 		head = head->next;
 		freeValNode(&Node->NumNodeTable);
+		for (int i = 0; i < (1 << 16); i++) {
+			void** s = NULL;
+			error = getValNodePointer(Node->StrNodeTable, i, &s);
+			if (error == ERROR_NONE) freeStrNode(s);
+		}
 		freeValNode(&Node->StrNodeTable);
+		for (int i = 0; i < (1 << 16); i++) {
+			void** s = NULL;
+			error = getValNodePointer(Node->ArrayNodeTable, i, &s);
+			if(error == ERROR_NONE) freeValNode(s);
+		}
 		freeValNode(&Node->ArrayNodeTable);
 		free(Node);
 	}
@@ -323,6 +334,18 @@ ErrorCode setStrNode(int index, char d)
 ErrorCode getStrNode(int index, char** block)
 {
 	return nodeSearchFunction(getStrNodeFunction, index, block);
+}
+
+/*
+* String 제거, 그냥 free 쓰면 되는데 정적 에러나는 에러가 나오더라
+*/
+ErrorCode freeStrNode(StrNode** strp) 
+{
+	StrNode* str = *strp;
+	free(str->d);
+	free(str);
+	*strp = NULL;
+	return ERROR_NONE;
 }
 
 #undef StrSize
